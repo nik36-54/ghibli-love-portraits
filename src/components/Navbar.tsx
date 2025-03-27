@@ -30,8 +30,8 @@ const Navbar = () => {
             href="/" 
             className="text-2xl font-display font-bold text-ghibli-deep"
           >
-            <span className="text-ghibli-deep">Ghibli</span>
-            <span className="text-ghibli-rose">Magic</span>
+            <span className="text-[#ee2a7b]">Ghibli</span>
+            <span className="text-[#6228d7]">Snap</span>
           </a>
           
           <nav className="hidden md:flex items-center space-x-8">

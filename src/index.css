@@ -16,11 +16,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 355 25% 25%;
 
-    --primary: 345 83% 66%;
+    --primary: 330 84% 54%;  /* Based on #ee2a7b */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 350 100% 96%;
-    --secondary-foreground: 345 73% 40%;
+    --secondary: 262 68% 50%;  /* Based on #6228d7 */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 350 25% 95%;
     --muted-foreground: 355 15% 55%;
@@ -33,7 +33,7 @@
 
     --border: 350 40% 90%;
     --input: 350 40% 90%;
-    --ring: 345 83% 66%;
+    --ring: 330 84% 54%; /* Based on #ee2a7b */
 
     --radius: 0.75rem;
   }
@@ -45,8 +45,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     background-image: 
-      radial-gradient(50% 50% at 100% 0%, rgba(255, 92, 138, 0.08) 0%, rgba(255, 255, 255, 0) 100%),
-      radial-gradient(50% 50% at 0% 100%, rgba(255, 92, 138, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+      radial-gradient(50% 50% at 100% 0%, rgba(238, 42, 123, 0.08) 0%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(50% 50% at 0% 100%, rgba(98, 40, 215, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
     background-attachment: fixed;
   }
 
@@ -60,12 +60,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: theme('colors.ghibli.rose');
+    background: #ee2a7b;
     border-radius: 50px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.ghibli.deep');
+    background: #6228d7;
   }
 }
 
@@ -75,11 +75,11 @@
   }
 
   .ghibli-btn {
-    @apply px-6 py-3 bg-ghibli-gradient text-white rounded-full font-medium shadow-ghibli transform transition-all duration-300 hover:shadow-ghibli-hover hover:scale-105 focus:outline-none focus:ring-2 focus:ring-ghibli-rose focus:ring-opacity-50;
+    @apply px-6 py-3 bg-ghibli-gradient text-white rounded-full font-medium shadow-ghibli transform transition-all duration-300 hover:shadow-ghibli-hover hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#ee2a7b] focus:ring-opacity-50;
   }
 
   .ghibli-btn-outline {
-    @apply px-6 py-3 bg-white/70 backdrop-blur-sm text-ghibli-deep rounded-full font-medium border border-ghibli-rose shadow-sm transform transition-all duration-300 hover:bg-ghibli-light hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ghibli-rose focus:ring-opacity-50;
+    @apply px-6 py-3 bg-white/70 backdrop-blur-sm text-[#ee2a7b] rounded-full font-medium border border-[#ee2a7b] shadow-sm transform transition-all duration-300 hover:bg-ghibli-light hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#ee2a7b] focus:ring-opacity-50;
   }
 
   .ghibli-card {
@@ -92,27 +92,27 @@
 
   .section-title::after {
     content: "";
-    @apply absolute bottom-0 left-0 w-1/2 h-1 bg-ghibli-deep rounded-full -mb-3;
+    @apply absolute bottom-0 left-0 w-1/2 h-1 bg-gradient-to-r from-[#ee2a7b] to-[#6228d7] rounded-full -mb-3;
   }
   
   .testimonial-card {
-    @apply p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-md border border-ghibli-pink/50 transition-all duration-300 hover:shadow-ghibli;
+    @apply p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-md border border-[#ee2a7b]/50 transition-all duration-300 hover:shadow-ghibli;
   }
   
   .ghibli-input {
-    @apply w-full px-4 py-3 border border-ghibli-pink rounded-xl bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-ghibli-rose placeholder:text-gray-400;
+    @apply w-full px-4 py-3 border border-[#ee2a7b] rounded-xl bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[#ee2a7b] placeholder:text-gray-400;
   }
   
   .how-it-works-step {
-    @apply relative p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-md border border-ghibli-pink/50 transition-all duration-300 hover:shadow-ghibli;
+    @apply relative p-6 bg-white/60 backdrop-blur-sm rounded-2xl shadow-md border border-[#ee2a7b]/50 transition-all duration-300 hover:shadow-ghibli;
   }
   
   .upload-box {
-    @apply flex flex-col items-center justify-center w-full h-64 px-4 transition bg-white/40 backdrop-blur-sm border-2 border-dashed rounded-xl border-ghibli-pink hover:bg-ghibli-light/40 hover:border-ghibli-rose;
+    @apply flex flex-col items-center justify-center w-full h-64 px-4 transition bg-white/40 backdrop-blur-sm border-2 border-dashed rounded-xl border-[#ee2a7b] hover:bg-ghibli-light/40 hover:border-[#6228d7];
   }
   
   .ghibli-upload-button {
-    @apply flex items-center px-4 py-2 bg-ghibli-gradient text-white rounded-xl font-medium shadow-sm transform transition-all duration-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ghibli-rose focus:ring-opacity-50;
+    @apply flex items-center px-4 py-2 bg-ghibli-gradient text-white rounded-xl font-medium shadow-sm transform transition-all duration-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#ee2a7b] focus:ring-opacity-50;
   }
 }
 

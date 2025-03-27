@@ -39,6 +39,8 @@ export default {
 					red: '#FF5C8A',
 					deep: '#E94057',
 					light: '#FFF0F5',
+					magenta: '#ee2a7b',
+					purple: '#6228d7',
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
@@ -144,12 +146,12 @@ export default {
 				'spin-slow': 'spin-slow 15s linear infinite'
 			},
 			boxShadow: {
-				'ghibli': '0 10px 30px -10px rgba(233, 64, 87, 0.3)',
-				'ghibli-hover': '0 15px 35px -5px rgba(233, 64, 87, 0.4)',
+				'ghibli': '0 10px 30px -10px rgba(238, 42, 123, 0.3)',
+				'ghibli-hover': '0 15px 35px -5px rgba(238, 42, 123, 0.4)',
 			},
 			backgroundImage: {
-				'ghibli-gradient': 'linear-gradient(135deg, #FFD1DC 0%, #FF5C8A 100%)',
-				'soft-pink-gradient': 'linear-gradient(to right, #ee9ca7, #ffdde1)',
+				'ghibli-gradient': 'linear-gradient(135deg, #ee2a7b 0%, #6228d7 100%)',
+				'soft-pink-gradient': 'linear-gradient(to right, #ee2a7b, #6228d7)',
 			},
 		}
 	},
