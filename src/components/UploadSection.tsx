@@ -140,14 +140,19 @@ const UploadSection = () => {
       formData.append('instagram', data.instagram || "");
       formData.append('twitter', data.twitter || "");
 
-      // This endpoint would be your Google Apps Script Web App URL
-      const response = await fetch('https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec', {
+      console.log("Preparing to submit data");
+      
+      // Use your deployed Google Apps Script URL
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLPJETcwSCbxRd8oGgPZhNR6CNGqWXcfFjXrUbdyiAhiZhx__-ck5wUYqEr9JvI98i/exec';
+      
+      // Using fetch with no-cors mode
+      await fetch(SCRIPT_URL, {
         method: 'POST',
         body: formData,
-        mode: 'no-cors', // Google Apps Script requires this mode
+        mode: 'no-cors', // Required for Google Apps Script
       });
 
-      console.log("Submitted data:", { ...data, fileSize: selectedFile.size });
+      console.log("Form submitted successfully");
       
       setSubmitSuccess(true);
       setShowConfirmation(true);

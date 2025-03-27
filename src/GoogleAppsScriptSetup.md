@@ -6,6 +6,7 @@ This guide will walk you through setting up the necessary Google services to han
 ## Step 1: Create a Google Sheet
 
 1. Go to [Google Sheets](https://sheets.google.com) and create a new spreadsheet
+   - Your spreadsheet is already created at: https://docs.google.com/spreadsheets/d/1CLxVXwiGWu5Vg0p6ITwypKY98R6pW-cXoXPT5zcdkos/edit
 2. Add the following column headers in the first row:
    - Timestamp
    - Name
@@ -13,21 +14,20 @@ This guide will walk you through setting up the necessary Google services to han
    - Instagram
    - Twitter
    - Image Link
-3. Copy the spreadsheet ID from the URL (the long string in the URL between `/d/` and `/edit`)
 
 ## Step 2: Create a Google Drive Folder
 
 1. Go to [Google Drive](https://drive.google.com) and create a new folder named "GhibliSnap Images"
-2. Open the folder and copy the folder ID from the URL (the long string at the end of the URL)
+   - Your folder is already created at: https://drive.google.com/drive/folders/1B6meR_k44BffhPG-M0zTnSc8ZU0E9r0-
 
 ## Step 3: Deploy the Google Apps Script
 
 1. Go to [Google Apps Script](https://script.google.com) and create a new project
 2. Delete any existing code in the editor
 3. Copy the entire content from `src/GoogleAppsScript.js` file and paste it into the editor
-4. Replace the placeholders in the script:
-   - Replace `YOUR_SPREADSHEET_ID` with the spreadsheet ID you copied in Step 1
-   - Replace `YOUR_FOLDER_ID` with the folder ID you copied in Step 2
+4. The script already has the correct IDs:
+   - Spreadsheet ID: `1CLxVXwiGWu5Vg0p6ITwypKY98R6pW-cXoXPT5zcdkos`
+   - Folder ID: `1B6meR_k44BffhPG-M0zTnSc8ZU0E9r0-`
 5. Save the project (File > Save)
 6. Deploy the script as a web app:
    - Click Deploy > New deployment
@@ -40,22 +40,42 @@ This guide will walk you through setting up the necessary Google services to han
 
 ## Step 4: Update Your Frontend Code
 
-1. Open `src/components/UploadSection.tsx` in your project
-2. Find this line:
+1. Once you've deployed the script, copy the Web App URL
+2. Open `src/components/UploadSection.tsx` in your project
+3. Find this line:
    ```javascript
-   const response = await fetch('https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec', {
+   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLPJETcwSCbxRd8oGgPZhNR6CNGqWXcfFjXrUbdyiAhiZhx__-ck5wUYqEr9JvI98i/exec';
    ```
-3. Replace `YOUR_DEPLOYMENT_ID` with the Web App URL you received when deploying the Google Apps Script
+4. Replace the URL with your actual deployment URL
 
-## Testing Your Integration
+## Important Permissions
 
-1. Run your GhibliSnap application
-2. Upload an image and submit the form
-3. Check your Google Sheet to verify the data is being recorded
-4. Check your Google Drive folder to verify the images are being uploaded
+For the Google Apps Script to work properly:
+1. Make sure the Google Sheet is accessible to the account running the script
+2. Make sure the Google Drive folder is accessible to the account running the script
+3. When you authorize the script, accept all the permission requests:
+   - Permission to access and modify your Google Sheets
+   - Permission to access and modify your Google Drive files
+   - Permission to connect to an external service (for receiving the form data)
 
-## Common Issues and Solutions
+## Troubleshooting Common Issues
 
-- **CORS Errors**: These are normal when testing locally. The `no-cors` mode in the fetch request handles this.
-- **Permission Errors**: Make sure you've authorized the Apps Script to access your Google Drive and Sheets.
-- **Form Data Issues**: If form data isn't being processed correctly, check the multipart form data handling in the Google Apps Script.
+1. **Data not appearing in Google Sheet**: 
+   - Check the script execution logs in Google Apps Script (View > Logs)
+   - Make sure your spreadsheet ID is correct
+   - Verify you have granted the script permission to access your Google Sheets
+
+2. **Files not appearing in Google Drive**:
+   - Check the script execution logs in Google Apps Script (View > Logs)
+   - Make sure your folder ID is correct
+   - Verify you have granted the script permission to access your Google Drive
+
+3. **CORS Errors**:
+   - The `mode: 'no-cors'` setting in the fetch request handles CORS issues
+   - This setup relies on the assumption that the request reached the server even without a response you can read
+   - Check Google Apps Script logs to confirm if requests are actually being received
+
+4. **Debugging Tips**:
+   - In Google Apps Script editor, click on "Run" > "Debug function" > "doPost" to test the script
+   - Check the Execution logs for any errors or issues
+   - Use `Logger.log()` statements in the script to track execution flow

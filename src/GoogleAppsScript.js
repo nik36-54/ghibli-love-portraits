@@ -5,14 +5,20 @@
  */
 
 // Configuration - Replace these with your actual IDs
-var SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
-var PARENT_FOLDER_ID = 'YOUR_FOLDER_ID'; 
+var SPREADSHEET_ID = '1CLxVXwiGWu5Vg0p6ITwypKY98R6pW-cXoXPT5zcdkos';
+var PARENT_FOLDER_ID = '1B6meR_k44BffhPG-M0zTnSc8ZU0E9r0-'; 
 
 // Handle POST requests
 function doPost(e) {
   try {
-    // Get form data
+    // Create a log of the request
+    Logger.log("Received request: " + JSON.stringify(e.postData));
+    
+    // Parse form data
     var data = parseFormData(e);
+    
+    // Log the parsed data
+    Logger.log("Parsed data: " + JSON.stringify(data));
     
     // Create a user folder and save image
     var imageLink = saveImageToDrive(data);
@@ -29,7 +35,7 @@ function doPost(e) {
     ).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
-    console.error("Error processing request: " + error);
+    Logger.log("Error processing request: " + error.toString());
     return ContentService.createTextOutput(
       JSON.stringify({ 
         success: false, 
@@ -45,38 +51,63 @@ function parseFormData(e) {
   
   // Handle multipart form data
   if (e.postData && e.postData.type === 'multipart/form-data') {
-    var boundary = e.postData.contents.match(/boundary=(.+)/)[1];
+    var boundary = e.postData.contents.split('\r\n')[0];
     var parts = e.postData.contents.split(boundary);
     
     for (var i = 0; i < parts.length; i++) {
       var part = parts[i];
-      var match = part.match(/name="([^"]+)"/);
-      
-      if (match) {
-        var name = match[1];
-        var fileMatch = part.match(/filename="([^"]+)"/);
+      if (part.indexOf('Content-Disposition: form-data;') !== -1) {
         
-        if (fileMatch) {
-          // This is a file
-          var filename = fileMatch[1];
-          var contentType = part.match(/Content-Type: (.+)/)[1].trim();
-          var fileData = part.split(/\r\n\r\n/)[1].trim();
+        var nameMatch = part.match(/name="([^"]+)"/);
+        if (nameMatch) {
+          var name = nameMatch[1];
+          var fileMatch = part.match(/filename="([^"]+)"/);
           
-          data.file = {
-            name: filename,
-            type: contentType,
-            data: Utilities.base64Decode(fileData, Utilities.Charset.UTF_8)
-          };
-        } else {
-          // This is a regular form field
-          var value = part.split(/\r\n\r\n/)[1].trim();
-          data[name] = value;
+          if (fileMatch) {
+            // This is a file
+            var filename = fileMatch[1];
+            var contentTypeMatch = part.match(/Content-Type: (.+)/);
+            var contentType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
+            
+            // Find the position after headers
+            var headerEndIndex = part.indexOf('\r\n\r\n');
+            if (headerEndIndex !== -1) {
+              var fileContent = part.substring(headerEndIndex + 4);
+              // Remove the last \r\n if present
+              if (fileContent.endsWith('\r\n')) {
+                fileContent = fileContent.substring(0, fileContent.length - 2);
+              }
+              
+              // Process the binary data
+              data.file = {
+                name: filename,
+                type: contentType,
+                data: Utilities.base64Decode(fileContent, Utilities.Charset.UTF_8)
+              };
+            }
+          } else {
+            // This is a regular form field
+            var headerEndIndex = part.indexOf('\r\n\r\n');
+            if (headerEndIndex !== -1) {
+              var value = part.substring(headerEndIndex + 4);
+              // Remove the last \r\n if present
+              if (value.endsWith('\r\n')) {
+                value = value.substring(0, value.length - 2);
+              }
+              data[name] = value;
+            }
+          }
         }
       }
     }
   } else if (e.postData) {
     // Handle JSON data
-    data = JSON.parse(e.postData.contents);
+    try {
+      data = JSON.parse(e.postData.contents);
+    } catch (error) {
+      Logger.log("Error parsing JSON: " + error.toString());
+      data = {error: "Failed to parse JSON data"};
+    }
   }
   
   return data;
@@ -84,50 +115,67 @@ function parseFormData(e) {
 
 // Save image to Drive and return the public link
 function saveImageToDrive(data) {
-  // Get the parent folder
-  var parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
-  
-  // Create a user folder with their name and email
-  var userFolderName = data.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + data.email.replace(/[^a-zA-Z0-9]/g, '_');
-  var userFolders = parentFolder.getFoldersByName(userFolderName);
-  var userFolder;
-  
-  if (userFolders.hasNext()) {
-    userFolder = userFolders.next();
-  } else {
-    userFolder = parentFolder.createFolder(userFolderName);
+  if (!data.file) {
+    Logger.log("No file data found");
+    return "No file uploaded";
   }
   
-  // Add timestamp to filename for uniqueness
-  var timestamp = new Date().getTime();
-  var fileName = timestamp + '_' + data.file.name;
-  
-  // Create the file in Drive
-  var file = userFolder.createFile(Utilities.newBlob(data.file.data, data.file.type, fileName));
-  
-  // Get link to the file
-  var fileId = file.getId();
-  var fileLink = "https://drive.google.com/file/d/" + fileId + "/view?usp=sharing";
-  
-  return fileLink;
+  try {
+    // Get the parent folder
+    var parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
+    
+    // Create a user folder with their name and email
+    var userFolderName = (data.name || 'Unknown').replace(/[^a-zA-Z0-9]/g, '_') + '_' + (data.email || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+    var userFolders = parentFolder.getFoldersByName(userFolderName);
+    var userFolder;
+    
+    if (userFolders.hasNext()) {
+      userFolder = userFolders.next();
+    } else {
+      userFolder = parentFolder.createFolder(userFolderName);
+    }
+    
+    // Add timestamp to filename for uniqueness
+    var timestamp = new Date().getTime();
+    var fileName = timestamp + '_' + data.file.name;
+    
+    // Create the file in Drive
+    var blob = Utilities.newBlob(data.file.data, data.file.type, fileName);
+    var file = userFolder.createFile(blob);
+    
+    // Get link to the file
+    var fileId = file.getId();
+    var fileLink = "https://drive.google.com/file/d/" + fileId + "/view?usp=sharing";
+    
+    return fileLink;
+  } catch (error) {
+    Logger.log("Error saving to Drive: " + error.toString());
+    return "Error saving file: " + error.toString();
+  }
 }
 
 // Log data to spreadsheet
 function logToSpreadsheet(data, imageLink) {
-  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  var sheet = spreadsheet.getSheets()[0]; // First sheet
-  
-  var timestamp = new Date();
-  
-  // Add data to spreadsheet
-  sheet.appendRow([
-    timestamp,
-    data.name,
-    data.email,
-    data.instagram || "",
-    data.twitter || "",
-    imageLink
-  ]);
+  try {
+    var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = spreadsheet.getSheets()[0]; // First sheet
+    
+    var timestamp = new Date();
+    
+    // Add data to spreadsheet
+    sheet.appendRow([
+      timestamp,
+      data.name || "",
+      data.email || "",
+      data.instagram || "",
+      data.twitter || "",
+      imageLink || ""
+    ]);
+    
+    Logger.log("Data logged to spreadsheet successfully");
+  } catch (error) {
+    Logger.log("Error logging to spreadsheet: " + error.toString());
+  }
 }
 
 // Test function for deployment verification
