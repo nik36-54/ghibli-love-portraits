@@ -41,7 +41,7 @@ const UploadSection = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Google Apps Script Web App URL - using the existing URL but it should be updated after deployment
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLPJETcwSCbxRd8oGgPZhNR6CNGqWXcfFjXrUbdyiAhiZhx__-ck5wUYqEr9JvI98i/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9tyQkhODnfKHNw3uyywfxwdECjcNVrzyMpNvemcnV9lHHiJ3M0m7Bz2W0gtvggGzF/exec';
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -121,59 +121,38 @@ const UploadSection = () => {
     }
   };
 
+  // Define onSubmit handler that will be passed to form.handleSubmit
   const onSubmit = async (data: FormValues) => {
-    if (!selectedFile) {
-      toast({
-        variant: "destructive",
-        title: "No image selected",
-        description: "Please upload an image before submitting",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
-
+    
     try {
-      // Create FormData for image upload
       const formData = new FormData();
+      if (!selectedFile) {
+        throw new Error("No file selected");
+      }
+      console.log("Uploading file:", selectedFile.name);
       formData.append('file', selectedFile);
       formData.append('name', data.name);
       formData.append('email', data.email);
       formData.append('instagram', data.instagram || "");
       formData.append('twitter', data.twitter || "");
-
-      console.log("Preparing to submit data to Google Apps Script");
       
-      // Send the data to the Google Apps Script Web App
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
         body: formData,
-        mode: 'no-cors', // This is required for cross-origin requests to Google Apps Script
+        
       });
 
-      console.log("Form submitted successfully");
-      
-      // Since we're using no-cors, we won't get a readable response
-      // So we'll just assume it was successful if no error was thrown
+      console.log("Submission complete");
       setSubmitSuccess(true);
       setShowConfirmation(true);
-      
-      toast({
-        title: "Submission successful!",
-        description: "We've received your image and details. We'll contact you soon!",
-      });
-
-      // Reset form after successful submission
-      form.reset();
-      setSelectedFile(null);
-      setPreview(null);
       
     } catch (error) {
       console.error("Submission error:", error);
       toast({
         variant: "destructive",
-        title: "Submission failed",
-        description: "There was an error submitting your data. Please try again.",
+        title: "Error submitting form",
+        description: "Please try again later",
       });
     } finally {
       setIsSubmitting(false);
