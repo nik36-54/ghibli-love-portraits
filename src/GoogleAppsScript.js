@@ -4,7 +4,7 @@
  * This script handles image uploads and data storage for GhibliSnap service
  */
 
-// Configuration - Replace these with your actual IDs
+// Configuration - These are the correct IDs
 var SPREADSHEET_ID = '1CLxVXwiGWu5Vg0p6ITwypKY98R6pW-cXoXPT5zcdkos';
 var PARENT_FOLDER_ID = '1B6meR_k44BffhPG-M0zTnSc8ZU0E9r0-'; 
 
@@ -12,19 +12,40 @@ var PARENT_FOLDER_ID = '1B6meR_k44BffhPG-M0zTnSc8ZU0E9r0-';
 function doPost(e) {
   try {
     // Create a log of the request
-    Logger.log("Received request: " + JSON.stringify(e.postData));
+    Logger.log("Received request with content type: " + (e.postData ? e.postData.type : "none"));
     
     // Parse form data
-    var data = parseFormData(e);
+    var data = {};
     
-    // Log the parsed data
+    // Handle form data from multipart request
+    if (e.postData && e.postData.type === 'multipart/form-data') {
+      data = parseMultipartFormData(e.postData.contents);
+    } 
+    // Handle data from application/x-www-form-urlencoded
+    else if (e.postData && e.postData.type === 'application/x-www-form-urlencoded') {
+      data = parseUrlEncodedFormData(e.postData.contents);
+    }
+    // Handle data from application/json
+    else if (e.postData && e.postData.type.indexOf('application/json') !== -1) {
+      data = JSON.parse(e.postData.contents);
+    }
+    // Handle form parameters (sent via URL parameters or simple form posts)
+    else if (e.parameter) {
+      data = e.parameter;
+    }
+    
     Logger.log("Parsed data: " + JSON.stringify(data));
     
     // Create a user folder and save image
-    var imageLink = saveImageToDrive(data);
+    var imageLink = "No image uploaded";
+    if (data.file) {
+      imageLink = saveImageToDrive(data);
+      Logger.log("Image saved at: " + imageLink);
+    }
     
     // Log data to spreadsheet
     logToSpreadsheet(data, imageLink);
+    Logger.log("Data logged to spreadsheet successfully");
     
     // Return success response
     return ContentService.createTextOutput(
@@ -46,18 +67,21 @@ function doPost(e) {
 }
 
 // Parse multipart form data
-function parseFormData(e) {
+function parseMultipartFormData(contents) {
   var data = {};
   
-  // Handle multipart form data
-  if (e.postData && e.postData.type === 'multipart/form-data') {
-    var boundary = e.postData.contents.split('\r\n')[0];
-    var parts = e.postData.contents.split(boundary);
+  try {
+    // Extract boundary from the first line
+    var boundary = "--" + contents.split("--")[1].split("\r\n")[0];
+    var parts = contents.split(boundary);
     
-    for (var i = 0; i < parts.length; i++) {
+    for (var i = 1; i < parts.length - 1; i++) {
       var part = parts[i];
+      
+      // Check if this part contains a form data
       if (part.indexOf('Content-Disposition: form-data;') !== -1) {
         
+        // Extract field name
         var nameMatch = part.match(/name="([^"]+)"/);
         if (nameMatch) {
           var name = nameMatch[1];
@@ -73,16 +97,23 @@ function parseFormData(e) {
             var headerEndIndex = part.indexOf('\r\n\r\n');
             if (headerEndIndex !== -1) {
               var fileContent = part.substring(headerEndIndex + 4);
-              // Remove the last \r\n if present
+              
+              // Remove the trailing new line
               if (fileContent.endsWith('\r\n')) {
                 fileContent = fileContent.substring(0, fileContent.length - 2);
               }
               
-              // Process the binary data
-              data.file = {
+              // Convert to blob
+              var fileBlob = Utilities.newBlob(
+                Utilities.base64Decode(Utilities.base64Encode(fileContent)), 
+                contentType, 
+                filename
+              );
+              
+              data[name] = {
                 name: filename,
                 type: contentType,
-                data: Utilities.base64Decode(fileContent, Utilities.Charset.UTF_8)
+                blob: fileBlob
               };
             }
           } else {
@@ -90,7 +121,7 @@ function parseFormData(e) {
             var headerEndIndex = part.indexOf('\r\n\r\n');
             if (headerEndIndex !== -1) {
               var value = part.substring(headerEndIndex + 4);
-              // Remove the last \r\n if present
+              // Remove the trailing new line
               if (value.endsWith('\r\n')) {
                 value = value.substring(0, value.length - 2);
               }
@@ -100,14 +131,23 @@ function parseFormData(e) {
         }
       }
     }
-  } else if (e.postData) {
-    // Handle JSON data
-    try {
-      data = JSON.parse(e.postData.contents);
-    } catch (error) {
-      Logger.log("Error parsing JSON: " + error.toString());
-      data = {error: "Failed to parse JSON data"};
-    }
+  } catch (e) {
+    Logger.log("Error parsing multipart form data: " + e.toString());
+  }
+  
+  return data;
+}
+
+// Parse URL encoded form data
+function parseUrlEncodedFormData(contents) {
+  var data = {};
+  var pairs = contents.split('&');
+  
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+    var key = decodeURIComponent(pair[0]);
+    var value = decodeURIComponent(pair[1] || '');
+    data[key] = value;
   }
   
   return data;
@@ -115,14 +155,18 @@ function parseFormData(e) {
 
 // Save image to Drive and return the public link
 function saveImageToDrive(data) {
-  if (!data.file) {
-    Logger.log("No file data found");
+  if (!data.file || !data.file.blob) {
+    Logger.log("No valid file data found");
     return "No file uploaded";
   }
   
   try {
     // Get the parent folder
     var parentFolder = DriveApp.getFolderById(PARENT_FOLDER_ID);
+    if (!parentFolder) {
+      Logger.log("Parent folder not found with ID: " + PARENT_FOLDER_ID);
+      return "Error: Parent folder not found";
+    }
     
     // Create a user folder with their name and email
     var userFolderName = (data.name || 'Unknown').replace(/[^a-zA-Z0-9]/g, '_') + '_' + (data.email || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
@@ -140,8 +184,7 @@ function saveImageToDrive(data) {
     var fileName = timestamp + '_' + data.file.name;
     
     // Create the file in Drive
-    var blob = Utilities.newBlob(data.file.data, data.file.type, fileName);
-    var file = userFolder.createFile(blob);
+    var file = userFolder.createFile(data.file.blob.setName(fileName));
     
     // Get link to the file
     var fileId = file.getId();
@@ -175,6 +218,7 @@ function logToSpreadsheet(data, imageLink) {
     Logger.log("Data logged to spreadsheet successfully");
   } catch (error) {
     Logger.log("Error logging to spreadsheet: " + error.toString());
+    throw new Error("Failed to log to spreadsheet: " + error.toString());
   }
 }
 

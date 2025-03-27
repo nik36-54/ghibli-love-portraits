@@ -1,6 +1,5 @@
-
 import { useState, useRef } from 'react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,6 +39,9 @@ const UploadSection = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Google Apps Script Web App URL - using the existing URL but it should be updated after deployment
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLPJETcwSCbxRd8oGgPZhNR6CNGqWXcfFjXrUbdyiAhiZhx__-ck5wUYqEr9JvI98i/exec';
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -140,20 +142,19 @@ const UploadSection = () => {
       formData.append('instagram', data.instagram || "");
       formData.append('twitter', data.twitter || "");
 
-      console.log("Preparing to submit data");
+      console.log("Preparing to submit data to Google Apps Script");
       
-      // Use your deployed Google Apps Script URL
-      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLPJETcwSCbxRd8oGgPZhNR6CNGqWXcfFjXrUbdyiAhiZhx__-ck5wUYqEr9JvI98i/exec';
-      
-      // Using fetch with no-cors mode
-      await fetch(SCRIPT_URL, {
+      // Send the data to the Google Apps Script Web App
+      const response = await fetch(SCRIPT_URL, {
         method: 'POST',
         body: formData,
-        mode: 'no-cors', // Required for Google Apps Script
+        mode: 'no-cors', // This is required for cross-origin requests to Google Apps Script
       });
 
       console.log("Form submitted successfully");
       
+      // Since we're using no-cors, we won't get a readable response
+      // So we'll just assume it was successful if no error was thrown
       setSubmitSuccess(true);
       setShowConfirmation(true);
       
