@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Award, Check, Heart, PartyPopper, Sparkles } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -14,6 +15,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -31,6 +38,7 @@ const UploadSection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form
@@ -142,6 +150,8 @@ const UploadSection = () => {
       console.log("Submitted data:", { ...data, fileSize: selectedFile.size });
       
       setSubmitSuccess(true);
+      setShowConfirmation(true);
+      
       toast({
         title: "Submission successful!",
         description: "We've received your image and details. We'll contact you soon!",
@@ -333,21 +343,69 @@ const UploadSection = () => {
                 </p>
               </div>
             )}
-            
-            {submitSuccess && (
-              <div className="text-center mt-8 p-6 bg-ghibli-light rounded-lg border border-ghibli-magenta animate-scale-in">
-                <svg className="h-16 w-16 text-ghibli-magenta mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
-                <p className="text-gray-600">
-                  We've received your image and information. Your Ghibli portrait will be ready in 24-48 hours.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
+
+      {/* Enhanced Success Confirmation Dialog */}
+      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <DialogContent className="bg-gradient-to-br from-[#ee2a7b]/95 to-[#6228d7]/95 border-none text-white max-w-md">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-2xl font-bold text-white flex justify-center mb-2">
+              <Heart className="h-8 w-8 mr-2 fill-white" />
+              Thank You!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 flex flex-col items-center">
+            <div className="bg-white/30 rounded-full p-4 mb-6">
+              <Check className="h-16 w-16 text-white" />
+            </div>
+            
+            <h3 className="text-xl font-semibold mb-4 text-center">
+              Your Ghibli transformation is underway!
+            </h3>
+            
+            <div className="space-y-3 text-center">
+              <p className="text-white/90">
+                We've received your photo and details and we're excited to create your Ghibli-style portrait!
+              </p>
+              
+              <div className="flex items-center justify-center space-x-2 mt-4">
+                <Sparkles className="h-5 w-5 text-yellow-300" />
+                <p className="font-medium">Ready in 24-48 hours</p>
+                <Sparkles className="h-5 w-5 text-yellow-300" />
+              </div>
+            </div>
+            
+            <div className="flex items-center mt-8 bg-white/20 rounded-lg p-3">
+              <Award className="h-6 w-6 text-yellow-300 mr-3" />
+              <p className="text-sm">Your portrait will be created with love and attention to detail</p>
+            </div>
+            
+            <Button 
+              onClick={() => setShowConfirmation(false)} 
+              className="mt-8 bg-white text-[#ee2a7b] hover:bg-white/90 hover:text-[#ee2a7b] border-none"
+            >
+              <PartyPopper className="h-4 w-4 mr-2" />
+              Can't Wait!
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Original success message (kept for redundancy) */}
+      {submitSuccess && !showConfirmation && (
+        <div className="text-center mt-8 p-6 bg-ghibli-light rounded-lg border border-ghibli-magenta animate-scale-in">
+          <svg className="h-16 w-16 text-ghibli-magenta mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
+          <p className="text-gray-600">
+            We've received your image and information. Your Ghibli portrait will be ready in 24-48 hours.
+          </p>
+        </div>
+      )}
     </section>
   );
 };
