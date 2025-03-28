@@ -7,68 +7,63 @@
 var SPREADSHEET_ID = "1CLxVXwiGWu5Vg0p6ITwypKY98R6pW-cXoXPT5zcdkos";
 var PARENT_FOLDER_ID = "1p2khbgRt-JxH5lOvkqtUHXWRpCguQWCt";
 
+// Add CORS headers
+function setCorsHeaders(output) {
+  var headers = {};
+  headers["Access-Control-Allow-Origin"] = "*";
+  headers["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS";
+  headers["Access-Control-Allow-Headers"] = "Content-Type";
+  return output.setHeaders(headers);
+}
+
 // Handle POST requests
 function doPost(e) {
   try {
-    // Create a log of the request
-    Logger.log(
-      "Received request with content type: " +
-        (e.postData ? e.postData.type : "none")
-    );
+    Logger.log("Received request");
+    Logger.log("Content type: " + (e.postData ? e.postData.type : "none"));
+    Logger.log("Parameters: " + JSON.stringify(e.parameter));
+    Logger.log("Post data: " + JSON.stringify(e.postData));
 
     // Parse form data
     var data = {};
 
-    // Handle form data from multipart request
     if (e.postData && e.postData.type === "multipart/form-data") {
       data = parseMultipartFormData(e.postData.contents);
-    }
-    // Handle data from application/x-www-form-urlencoded
-    else if (
-      e.postData &&
-      e.postData.type === "application/x-www-form-urlencoded"
-    ) {
-      data = parseUrlEncodedFormData(e.postData.contents);
-    }
-    // Handle data from application/json
-    else if (e.postData && e.postData.type.indexOf("application/json") !== -1) {
-      data = JSON.parse(e.postData.contents);
-    }
-    // Handle form parameters (sent via URL parameters or simple form posts)
-    else if (e.parameter) {
-      data = e.parameter;
+      Logger.log("Parsed multipart data: " + JSON.stringify(data));
+    } else {
+      throw new Error("Expected multipart/form-data");
     }
 
-    Logger.log("Parsed data: " + JSON.stringify(data));
-
-    // Create a user folder and save image
-    var imageLink = "No image uploaded";
-    if (data.file) {
-      imageLink = saveImageToDrive(data);
-      Logger.log("Image saved at: " + imageLink);
+    // Verify file data
+    if (!data.file || !data.file.blob) {
+      throw new Error("No file received in request");
     }
 
-    // Log data to spreadsheet
+    // Save image and get link
+    var imageLink = saveImageToDrive(data);
+    Logger.log("Image saved at: " + imageLink);
+
+    // Log to spreadsheet
     logToSpreadsheet(data, imageLink);
-    Logger.log("Data logged to spreadsheet successfully");
+    Logger.log("Data logged to spreadsheet");
 
-    // Return success response
-    return ContentService.createTextOutput(
+    // Return success response with CORS headers
+    return setCorsHeaders(ContentService.createTextOutput(
       JSON.stringify({
         success: true,
-        message:
-          "Your photo has been received! We're creating your Ghibli portrait with love.",
-          imageLink: imageLink,
+        message: "Upload successful",
+        imageLink: imageLink
       })
-    ).setMimeType(ContentService.MimeType.JSON);
+    ).setMimeType(ContentService.MimeType.JSON));
+
   } catch (error) {
-    Logger.log("Error processing request: " + error.toString());
-    return ContentService.createTextOutput(
+    Logger.log("Error: " + error.toString());
+    return setCorsHeaders(ContentService.createTextOutput(
       JSON.stringify({
         success: false,
-        error: error.toString(),
+        error: error.toString()
       })
-    ).setMimeType(ContentService.MimeType.JSON);
+    ).setMimeType(ContentService.MimeType.JSON));
   }
 }
 
@@ -77,7 +72,7 @@ function parseMultipartFormData(contents) {
   var data = {};
   
   try {
-    // Extract boundary from the first line
+    // Extract boundary
     var boundary = "--" + contents.split("--")[1].split("\r\n")[0];
     var parts = contents.split(boundary);
     
@@ -91,32 +86,35 @@ function parseMultipartFormData(contents) {
           var fileMatch = part.match(/filename="([^"]+)"/);
           
           if (fileMatch) {
-            // This is a file
+            // Handle file
             var filename = fileMatch[1];
             var contentTypeMatch = part.match(/Content-Type: (.+)/);
             var contentType = contentTypeMatch ? contentTypeMatch[1].trim() : 'application/octet-stream';
             
-            // Find the position after headers
             var headerEndIndex = part.indexOf('\r\n\r\n');
             if (headerEndIndex !== -1) {
               var fileContent = part.substring(headerEndIndex + 4);
-              
-              // Remove the trailing new line and properly handle binary data
               if (fileContent.endsWith('\r\n')) {
                 fileContent = fileContent.substring(0, fileContent.length - 2);
               }
               
-              // Create blob directly from the raw binary data
-              var fileBlob = Utilities.newBlob(Utilities.base64Decode(fileContent), contentType, filename);
+              // Create blob with proper encoding
+              var fileBlob = Utilities.newBlob(
+                Utilities.base64Decode(fileContent), 
+                contentType, 
+                filename
+              ).setContentTypeFromExtension();
               
               data[name] = {
                 name: filename,
                 type: contentType,
                 blob: fileBlob
               };
+              
+              Logger.log("File processed: " + filename);
             }
           } else {
-            // This is a regular form field
+            // Handle regular form field
             var valueStartIndex = part.indexOf('\r\n\r\n');
             if (valueStartIndex !== -1) {
               var value = part.substring(valueStartIndex + 4).trim();
@@ -131,7 +129,7 @@ function parseMultipartFormData(contents) {
     }
     return data;
   } catch (error) {
-    Logger.log("Error parsing multipart form data: " + error.toString());
+    Logger.log("Error parsing form data: " + error.toString());
     throw error;
   }
 }
@@ -233,10 +231,10 @@ function logToSpreadsheet(data, imageLink) {
 
 // Test function for deployment verification
 function doGet() {
-  return ContentService.createTextOutput(
+  return setCorsHeaders(ContentService.createTextOutput(
     JSON.stringify({
-      status: "GhibliSnap API is running",
-      message: "Send a POST request with form data to use this API",
+      status: "active",
+      message: "GhibliSnap API is running"
     })
-  ).setMimeType(ContentService.MimeType.JSON);
+  ).setMimeType(ContentService.MimeType.JSON));
 }

@@ -130,29 +130,47 @@ const UploadSection = () => {
       if (!selectedFile) {
         throw new Error("No file selected");
       }
+      
+      // Debug log
       console.log("Uploading file:", selectedFile.name);
+
       formData.append('file', selectedFile);
       formData.append('name', data.name);
       formData.append('email', data.email);
       formData.append('instagram', data.instagram || "");
       formData.append('twitter', data.twitter || "");
-      
+
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
         body: formData,
-        
+        // Remove no-cors mode to get proper response
+        // mode: 'no-cors', 
       });
 
-      console.log("Submission complete");
-      setSubmitSuccess(true);
-      setShowConfirmation(true);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Upload response:", result);
+
+      if (result.success) {
+        setSubmitSuccess(true);
+        setShowConfirmation(true);
+        toast({
+          title: "Success!",
+          description: "Your photo has been uploaded successfully.",
+        });
+      } else {
+        throw new Error(result.error || "Upload failed");
+      }
       
     } catch (error) {
       console.error("Submission error:", error);
       toast({
         variant: "destructive",
         title: "Error submitting form",
-        description: "Please try again later",
+        description: error.message || "Please try again later",
       });
     } finally {
       setIsSubmitting(false);
