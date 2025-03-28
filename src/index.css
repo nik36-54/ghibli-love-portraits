@@ -156,3 +156,7 @@
     transform: translateY(0);
   }
 }
+
+#appendPaypal{
+  display: none;
+}
