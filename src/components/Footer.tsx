@@ -11,8 +11,8 @@ const Footer = () => {
               href="/" 
               className="text-xl font-display font-bold"
             >
-              <span className="text-[#ee2a7b]">Ghibli</span>
-              <span className="text-[#6228d7]">Snap</span>
+              <span className="text-[#ee2a7b]">Anime</span>
+              <span className="text-[#6228d7]">Vista</span>
             </a>
             <p className="text-sm text-foreground/70 mt-2">
               Bringing warmth to your memories

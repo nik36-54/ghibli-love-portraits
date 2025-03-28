@@ -45,7 +45,7 @@ const Hero = () => {
             ref={titleRef}
             className="opacity-0 font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight"
           >
-            Ghiblify Yourself & Your{' '}
+            Animify Yourself & Your{' '}
             <span className="text-ghibli-deep">Loved Ones</span>
           </h1>
           
