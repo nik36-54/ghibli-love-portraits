@@ -1,5 +1,5 @@
 
-import { Github, Instagram, Twitter } from 'lucide-react';
+import { Instagram, Twitter } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -11,8 +11,8 @@ const Footer = () => {
               href="/" 
               className="text-xl font-display font-bold"
             >
-              <span className="text-[#ee2a7b]">Anime</span>
-              <span className="text-[#6228d7]">Vista</span>
+              <span className="text-[#ee2a7b]">Snap</span>
+              <span className="text-[#6228d7]">Art</span>
             </a>
             <p className="text-sm text-foreground/70 mt-2">
               Bringing warmth to your memories
@@ -40,9 +40,7 @@ const Footer = () => {
             <a href="#" className="text-foreground/70 hover:text-[#ee2a7b] transition-colors">
               <Twitter size={20} />
             </a>
-            <a href="#" className="text-foreground/70 hover:text-[#ee2a7b] transition-colors">
-              <Github size={20} />
-            </a>
+            
           </div>
           
           <p className="text-sm text-foreground/60">

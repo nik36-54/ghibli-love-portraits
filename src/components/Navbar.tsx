@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -30,14 +30,14 @@ const Navbar = () => {
             href="/" 
             className="text-2xl font-display font-bold text-ghibli-deep"
           >
-            <span className="text-[#ee2a7b]">Anime</span>
-            <span className="text-[#6228d7]">Vista</span>
+            <span className="text-[#ee2a7b]">Snap</span>
+            <span className="text-[#6228d7]">Art</span>
           </a>
           
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#how-it-works" className="text-foreground hover:text-ghibli-deep transition-colors">How It Works</a>
             <a href="#testimonials" className="text-foreground hover:text-ghibli-deep transition-colors">Testimonials</a>
-            <a href="#upload" className="ghibli-btn">Animify Now</a>
+            <a href="#upload" className="ghibli-btn">Generate</a>
           </nav>
           
           <button className="md:hidden text-ghibli-deep">

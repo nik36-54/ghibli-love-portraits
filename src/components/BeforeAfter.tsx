@@ -47,7 +47,7 @@ const BeforeAfter = () => {
           >
             <div className="rounded-lg overflow-hidden shadow-lg mb-4 w-full aspect-[4/5]">
               <img 
-                src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80" 
+                src="/assets/original.jpg" 
                 alt="Original portrait" 
                 className="w-full h-full object-cover"
               />
@@ -68,7 +68,7 @@ const BeforeAfter = () => {
           >
             <div className="rounded-lg overflow-hidden shadow-lg mb-4 w-full aspect-[4/5]">
               <img 
-                src="https://images.pexels.com/photos/10757598/pexels-photo-10757598.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+                src="/assets/ghiblified.jpg" 
                 alt="Ghibli style portrait" 
                 className="w-full h-full object-cover"
               />
