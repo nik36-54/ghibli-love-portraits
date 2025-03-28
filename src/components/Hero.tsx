@@ -53,7 +53,7 @@ const Hero = () => {
             ref={subtitleRef}
             className="opacity-0 text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto"
           >
-            Turn your memories into a timeless Ghibli-style portrait — a perfect gift for someone special.
+            Turn your memories into a timeless Anime-style portrait — a perfect gift for someone special.
           </p>
           
           <a 
