@@ -46,7 +46,7 @@ const Footer = () => {
           </div>
           
           <p className="text-sm text-foreground/60">
-            © 2025 GhibliSnap. Bringing warmth to your memories.
+            © 2025 Anime-ate. Bringing warmth to your memories.
           </p>
           <div className="flex justify-center gap-4 mt-4">
             <a href="#" className="text-foreground/60 hover:text-[#ee2a7b] transition-colors">

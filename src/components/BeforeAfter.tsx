@@ -38,7 +38,7 @@ const BeforeAfter = () => {
   return (
     <section ref={sectionRef} className="py-16 px-4 bg-ghibli-light/50">
       <div className="container mx-auto">
-        <h2 className="section-title text-center mx-auto">Before and After Ghibli Portrait</h2>
+        <h2 className="section-title text-center mx-auto">Before and After</h2>
         
         <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-12">
           <div 
@@ -73,7 +73,7 @@ const BeforeAfter = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-lg font-medium text-foreground">Ghibli Portrait</span>
+            <span className="text-lg font-medium text-foreground">Anime Portrait</span>
           </div>
         </div>
       </div>

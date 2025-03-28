@@ -1,11 +1,4 @@
-import { useState, useRef } from 'react';
-import { toast } from '@/hooks/use-toast';
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Award, Check, Heart, PartyPopper, Sparkles } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -14,12 +7,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -40,8 +33,38 @@ const UploadSection = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const razorPayForm = useRef<HTMLFormElement>(null);
+
   // Google Apps Script Web App URL - using the existing URL but it should be updated after deployment
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvl9n4Y3oUof0KUaUi_ZqyBT-NZJpI0w0zcTPC163KrjKPWWtocrQ1Xjlf-spPwNjX/exec';
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (razorPayForm.current) {
+        clearInterval(interval);
+        appendScript();
+      }
+    }, 100); // Check every 100ms until found
+  
+    return () => clearInterval(interval);
+  }, []);
+  
+
+  const appendScript = () => {
+    razorPayForm.current = document.querySelector("#appendRazorPay");
+    
+    if (!razorPayForm.current) return;
+  
+      if (document.getElementById("razorpay-script")) return;
+  
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/payment-button.js";
+      script.async = true;
+      script.setAttribute("data-payment_button_id", "pl_QC7DADYaQ8Hb6k");
+      script.id = "razorpay-script"; // Avoid multiple scripts
+  
+      razorPayForm.current.appendChild(script);
+  }
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -124,6 +147,7 @@ const UploadSection = () => {
   // Define onSubmit handler that will be passed to form.handleSubmit
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
+
     
     try {
       // const formData = new FormData();
@@ -357,11 +381,16 @@ const UploadSection = () => {
                       />
                     </div>
                     
-                    <div className="flex justify-center pt-2">
+                    <div 
+                      className="flex justify-center pt-2" 
+                      onClick={() => {
+                        document.getElementById("submitButton").click();
+                      }}>
                       <Button 
                         type="submit" 
                         className="ghibli-btn"
                         disabled={isSubmitting}
+                        id='submitButton'
                       >
                         {isSubmitting ? (
                           <div className="flex items-center">
@@ -372,15 +401,16 @@ const UploadSection = () => {
                             Processing...
                           </div>
                         ) : (
-                          "Transform to Ghibli Style"
+                          "Transform to Anime Style"
                         )}
                       </Button>
+                      <form className="absolute opacity-0" ref={razorPayForm}  id='appendRazorPay' />
                     </div>
                   </form>
                 </Form>
                 
                 <p className="mt-6 text-sm text-gray-600 text-center">
-                  Your portrait will be ready within 24-48 hours
+                  Your portrait will be in your inbox soon
                 </p>
               </div>
             )}
@@ -389,7 +419,7 @@ const UploadSection = () => {
       </div>
 
       {/* Enhanced Success Confirmation Dialog */}
-      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+      {/* <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
         <DialogContent className="bg-gradient-to-br from-[#ee2a7b]/95 to-[#6228d7]/95 border-none text-white max-w-md">
           <DialogHeader className="text-center">
             <DialogTitle className="text-2xl font-bold text-white flex justify-center mb-2">
@@ -433,10 +463,10 @@ const UploadSection = () => {
             </Button>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
       
       {/* Original success message (kept for redundancy) */}
-      {submitSuccess && !showConfirmation && (
+      {/* {submitSuccess && !showConfirmation && (
         <div className="text-center mt-8 p-6 bg-ghibli-light rounded-lg border border-ghibli-magenta animate-scale-in">
           <svg className="h-16 w-16 text-ghibli-magenta mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -446,7 +476,7 @@ const UploadSection = () => {
             We've received your image and information. Your Ghibli portrait will be ready in 24-48 hours.
           </p>
         </div>
-      )}
+      )} */}
     </section>
   );
 };
