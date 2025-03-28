@@ -182,7 +182,6 @@ const UploadSection = () => {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
 
-    
     try {
       // const formData = new FormData();
       if (!selectedFile) {
@@ -194,9 +193,6 @@ const UploadSection = () => {
         reader.onerror = reject;
         reader.readAsDataURL(selectedFile);
       });
-
-      // Debug log
-      console.log("Uploading file:", selectedFile.name);
 
       // formData.append('file', selectedFile);
       // formData.append('name', data.name);
@@ -425,7 +421,11 @@ const UploadSection = () => {
                         onClick={(e) => {
                           form.handleSubmit(onSubmit)(e);
                           
-                          if(!fromIndia) document.getElementById("checkout-button").click();
+                          if(!fromIndia) {
+                            setTimeout(() => {
+                              document.getElementById("checkout-button").click();
+                            }, 0);
+                          }
                         }}
                       >
                         {isSubmitting ? (
