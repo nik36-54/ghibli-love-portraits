@@ -14,6 +14,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+declare global {
+  interface Window {
+    paypal: any; // Declare PayPal on the window object
+  }
+}
+
 // Form schema with validation
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -31,30 +37,33 @@ const UploadSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fromIndia, setFromIndia] = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const razorPayForm = useRef<HTMLFormElement>(null);
 
   // Google Apps Script Web App URL - using the existing URL but it should be updated after deployment
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvl9n4Y3oUof0KUaUi_ZqyBT-NZJpI0w0zcTPC163KrjKPWWtocrQ1Xjlf-spPwNjX/exec';
 
   useEffect(() => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setFromIndia(timeZone === "Asia/Calcutta");
+
     const interval = setInterval(() => {
       if (razorPayForm.current) {
         clearInterval(interval);
-        appendScript();
+        appendScript(timeZone === "Asia/Calcutta");
       }
-    }, 100); // Check every 100ms until found
-  
-    return () => clearInterval(interval);
+    }, 100); 
   }, []);
   
 
-  const appendScript = () => {
-    razorPayForm.current = document.querySelector("#appendRazorPay");
-    
-    if (!razorPayForm.current) return;
+  const appendScript = (fromIndia: boolean) => {
+    if (fromIndia) {
+      // Load Razorpay
+      razorPayForm.current = document.querySelector("#appendRazorPay");
   
+      if (!razorPayForm.current) return;
       if (document.getElementById("razorpay-script")) return;
   
       const script = document.createElement("script");
@@ -64,7 +73,32 @@ const UploadSection = () => {
       script.id = "razorpay-script"; // Avoid multiple scripts
   
       razorPayForm.current.appendChild(script);
-  }
+    } else {
+      // Load PayPal
+      const paypalContainer = document.querySelector("#appendPaypal");
+  
+      if (!paypalContainer) return;
+      if (document.getElementById("paypal-script")) return;
+  
+      const script = document.createElement("script");
+      script.src = "https://www.paypal.com/sdk/js?client-id=BAAsufuCngXOV6LZG9ZyGoW4K6EayOxhP5Sk1u00F6m-pTP_bGt_Au8Sjov2OIh2KtP1uQgCnEVo7YAoHk&components=hosted-buttons&disable-funding=venmo&currency=USD";
+      script.async = true;
+      script.id = "paypal-script";
+      
+      paypalContainer.appendChild(script);
+  
+      script.onload = () => {
+        if (window.paypal?.HostedButtons) {
+          window.paypal.HostedButtons({
+            hostedButtonId: "EVRT74T4UPZW6",
+          }).render("#paypal-container-EVRT74T4UPZW6");
+        } else {
+          console.error("PayPal Hosted Buttons script failed to load.");
+        }
+      };
+    }
+  };
+  
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -312,7 +346,7 @@ const UploadSection = () => {
               <div className="animate-fade-in">
                 <h3 className="text-xl font-semibold text-center mb-6">Enter Your Details</h3>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
@@ -381,16 +415,17 @@ const UploadSection = () => {
                       />
                     </div>
                     
-                    <div 
-                      className="flex justify-center pt-2" 
-                      onClick={() => {
-                        document.getElementById("submitButton").click();
-                      }}>
+                    <div className="flex justify-center pt-2">
                       <Button 
-                        type="submit" 
+                        type="button" 
                         className="ghibli-btn"
                         disabled={isSubmitting}
                         id='submitButton'
+                        onClick={(e) => {
+                          form.handleSubmit(onSubmit)(e);
+                          
+                          if(!fromIndia) document.getElementById("checkout-button").click();
+                        }}
                       >
                         {isSubmitting ? (
                           <div className="flex items-center">
@@ -403,10 +438,13 @@ const UploadSection = () => {
                         ) : (
                           "Transform to Anime Style"
                         )}
+                        <form className="absolute opacity-0" ref={razorPayForm}  id='appendRazorPay' />
+                        <div id="appendPaypal" className=''>
+                          <div id="paypal-container-EVRT74T4UPZW6"/>
+                        </div>
                       </Button>
-                      <form className="absolute opacity-0" ref={razorPayForm}  id='appendRazorPay' />
                     </div>
-                  </form>
+                  </div>
                 </Form>
                 
                 <p className="mt-6 text-sm text-gray-600 text-center">
