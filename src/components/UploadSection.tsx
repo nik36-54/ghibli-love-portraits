@@ -36,7 +36,7 @@ const UploadSection = () => {
   const razorPayForm = useRef<HTMLFormElement>(null);
 
   // Google Apps Script Web App URL - using the existing URL but it should be updated after deployment
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvl9n4Y3oUof0KUaUi_ZqyBT-NZJpI0w0zcTPC163KrjKPWWtocrQ1Xjlf-spPwNjX/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwSwFpxE6mniv9r8ZVQNpVbX5jUmNpjetx1sNpUfO1E_9b_yu9f-MPatAXNZ0JX-o3/exec';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -172,6 +172,7 @@ const UploadSection = () => {
       const submissionData = {
         userName: data.name,
         userEmail: data.email,
+        userInstagram: data.instagram || "",
         userTwitter: data.twitter || "",
         shareOnTwitter: false, // Add logic if you want to include this
         images: [fileBase64], // Send as array to match Apps Script expectation
