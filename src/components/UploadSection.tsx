@@ -41,7 +41,7 @@ const UploadSection = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Google Apps Script Web App URL - using the existing URL but it should be updated after deployment
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9tyQkhODnfKHNw3uyywfxwdECjcNVrzyMpNvemcnV9lHHiJ3M0m7Bz2W0gtvggGzF/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvl9n4Y3oUof0KUaUi_ZqyBT-NZJpI0w0zcTPC163KrjKPWWtocrQ1Xjlf-spPwNjX/exec';
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -126,23 +126,45 @@ const UploadSection = () => {
     setIsSubmitting(true);
     
     try {
-      const formData = new FormData();
+      // const formData = new FormData();
       if (!selectedFile) {
         throw new Error("No file selected");
       }
-      
+      const fileBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(selectedFile);
+      });
+
       // Debug log
       console.log("Uploading file:", selectedFile.name);
 
-      formData.append('file', selectedFile);
-      formData.append('name', data.name);
-      formData.append('email', data.email);
-      formData.append('instagram', data.instagram || "");
-      formData.append('twitter', data.twitter || "");
+      // formData.append('file', selectedFile);
+      // formData.append('name', data.name);
+      // formData.append('email', data.email);
+      // formData.append('instagram', data.instagram || "");
+      // formData.append('twitter', data.twitter || "");
+      const submissionData = {
+        userName: data.name,
+        userEmail: data.email,
+        userTwitter: data.twitter || "",
+        shareOnTwitter: false, // Add logic if you want to include this
+        images: [fileBase64], // Send as array to match Apps Script expectation
+        timestamp: new Date().toISOString()
+      };
 
+      // Create form data to send
+      const formDataToSend = new FormData();
+      formDataToSend.append('data', JSON.stringify(submissionData));
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
-        body: formData,
+        body: `data=${encodeURIComponent(JSON.stringify(submissionData))}`
+,
+      //   mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
         // Remove no-cors mode to get proper response
         // mode: 'no-cors', 
       });
@@ -151,19 +173,35 @@ const UploadSection = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-      console.log("Upload response:", result);
+      // const result = await response.json();
+      // console.log("Upload response:", result);
 
-      if (result.success) {
+    
+
+      // if (result.success) {
         setSubmitSuccess(true);
         setShowConfirmation(true);
         toast({
           title: "Success!",
           description: "Your photo has been uploaded successfully.",
         });
-      } else {
-        throw new Error(result.error || "Upload failed");
-      }
+      // } else {
+      //   throw new Error(result.error || "Upload failed");
+    //  const responseText = await response.text();
+    //   console.log("Raw response:", responseText);
+
+    //   // Exact match for "Success" response
+    //   if (responseText.trim() === 'Success') {
+    //     setSubmitSuccess(true);
+    //     setShowConfirmation(true);
+    //     toast({
+    //       title: "Success!",
+    //       description: "Your photo has been uploaded successfully.",
+    //     });
+    //   } else {
+    //     throw new Error(responseText || "Upload failed");
+    //   }
+
       
     } catch (error) {
       console.error("Submission error:", error);
